@@ -3,6 +3,9 @@
 Dataset: PhysioNet EEG Motor Movement/Imagery (EEGBCI), 64 channels, 160 Hz.
 Task: imagined opening/closing of BOTH FISTS (T1) vs BOTH FEET (T2).
 """
+import os
+import hashlib
+import json
 import numpy as np
 import mne
 from mne.datasets import eegbci
@@ -51,10 +54,19 @@ def epoch_subject(subject):
     return X.astype(np.float32), y.astype(np.int64), epochs.ch_names
 
 
-def build_dataset(subjects=SUBJECTS):
+def build_dataset(subjects=SUBJECTS, cache=True):
     """Stack all subjects. `groups` holds the subject id of every trial."""
+    key = hashlib.md5(json.dumps([RUNS, L_FREQ, H_FREQ, TMIN, TMAX, CROP, list(subjects)]).encode()).hexdigest()[:10]
+    cache_dir = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(cache_dir, f".cache_{key}.npz")
+    if cache and os.path.exists(path):
+        d = np.load(path, allow_pickle=True)
+        return d["X"], d["y"], d["g"], list(d["ch"])
     Xs, ys, gs = [], [], []
     for s in subjects:
         X, y, ch_names = epoch_subject(s)
         Xs.append(X); ys.append(y); gs.append(np.full(len(y), s))
-    return np.concatenate(Xs), np.concatenate(ys), np.concatenate(gs), ch_names
+    X, y, g = np.concatenate(Xs), np.concatenate(ys), np.concatenate(gs)
+    if cache:
+        np.savez(path, X=X, y=y, g=g, ch=np.array(ch_names))
+    return X, y, g, ch_names
