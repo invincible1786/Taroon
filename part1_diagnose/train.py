@@ -56,11 +56,6 @@ def main():
     print(f"data: {X.shape}, subjects={len(np.unique(groups))}, "
           f"class balance={np.bincount(y)}")
 
-    # Per-channel z-scoring (still global in this commit).
-    mean = X.mean(axis=(0, 2), keepdims=True)
-    std = X.std(axis=(0, 2), keepdims=True) + 1e-6
-    X = ((X - mean) / std).astype(np.float32)
-
     # Subject-level split: 5-fold cross-validation by subject.
     subs = np.unique(groups)
     folds = np.array_split(np.random.default_rng(1234).permutation(subs), args.n_folds)
@@ -72,6 +67,11 @@ def main():
     va = np.where(np.isin(groups, val_subs))[0]
     te = np.where(np.isin(groups, test_subs))[0]
     assert not (set(groups[tr]) & set(groups[te])) and not (set(groups[va]) & set(groups[te]))
+
+    # Per-channel z-scoring: fit normalisation on training subjects only.
+    mean = X[tr].mean(axis=(0, 2), keepdims=True)
+    std = X[tr].std(axis=(0, 2), keepdims=True) + 1e-6
+    X = ((X - mean) / std).astype(np.float32)
 
     n_ch, n_t = X.shape[1], X.shape[2]
     model = EEGNet(n_ch, n_t)
