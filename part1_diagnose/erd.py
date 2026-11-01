@@ -25,7 +25,7 @@ def band_power_epochs(raw, events, band):
     r.apply_hilbert(envelope=True, verbose="error")
     epochs = mne.Epochs(r, events, EVENT_ID, TMIN, TMAX, baseline=None,
                         preload=True, verbose="error")
-    return epochs.apply_function(np.square)   # envelope -> power
+    return epochs.apply_function(lambda x: np.square(x))   # envelope -> power
 
 
 def erd_percent(epochs, cond):
