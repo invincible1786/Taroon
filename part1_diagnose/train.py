@@ -5,6 +5,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import numpy as np
 import torch
 import torch.nn as nn
@@ -27,13 +28,18 @@ CHANNEL_GROUPS = {
 
 def set_seed(seed):
     np.random.seed(seed); torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
-def evaluate(model, X, y, bs=256):
+def evaluate(model, X, y, bs=256, device=None):
+    if device is None:
+        device = next(model.parameters()).device
     model.eval(); correct = 0
     with torch.no_grad():
         for i in range(0, len(y), bs):
-            xb = torch.from_numpy(X[i:i + bs]); yb = torch.from_numpy(y[i:i + bs])
+            xb = torch.from_numpy(X[i:i + bs]).to(device)
+            yb = torch.from_numpy(y[i:i + bs]).to(device)
             correct += (model(xb).argmax(1) == yb).sum().item()
     return correct / len(y)
 
@@ -50,8 +56,11 @@ def main():
     ap.add_argument("--n_folds", type=int, default=5)
     ap.add_argument("--select", choices=["val", "last"], default="val")
     ap.add_argument("--permute", action="store_true")
+    ap.add_argument("--device", type=str, default=None)
     args = ap.parse_args()
     set_seed(args.seed)
+
+    device = torch.device(args.device if args.device else ("cuda" if torch.cuda.is_available() else "cpu"))
 
     X, y, groups, ch_names = build_dataset(args.subjects)
     picks = CHANNEL_GROUPS[args.channels]
@@ -64,7 +73,7 @@ def main():
         assert not missing, f"Missing channels: {missing}"
         X = X[:, [ch_names.index(c) for c in picks]]
     print(f"data: {X.shape}, subjects={len(np.unique(groups))}, "
-          f"class balance={np.bincount(y)}")
+          f"class balance={np.bincount(y)}, device={device}")
 
     # Subject-level split: 5-fold cross-validation by subject.
     subs = np.unique(groups)
@@ -89,7 +98,7 @@ def main():
         y_fit[tr] = np.random.default_rng(args.seed).permutation(y[tr])
 
     n_ch, n_t = X.shape[1], X.shape[2]
-    model = EEGNet(n_ch, n_t)
+    model = EEGNet(n_ch, n_t).to(device)
     print(f"EEGNet: {count_params(model)} params")
 
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-3)
@@ -102,10 +111,11 @@ def main():
         order = rng.permutation(tr)
         for i in range(0, len(order), args.bs):
             b = order[i:i + args.bs]
-            xb, yb = torch.from_numpy(X[b]), torch.from_numpy(y_fit[b])
+            xb = torch.from_numpy(X[b]).to(device)
+            yb = torch.from_numpy(y_fit[b]).to(device)
             opt.zero_grad(); loss = loss_fn(model(xb), yb); loss.backward(); opt.step()
-        va_acc = evaluate(model, X[va], y[va])
-        te_acc = evaluate(model, X[te], y[te])
+        va_acc = evaluate(model, X[va], y[va], device=device)
+        te_acc = evaluate(model, X[te], y[te], device=device)
         if args.select == "val" and va_acc > best_val:
             best_val, best_ep = va_acc, ep
             best_state = {k: v.clone() for k, v in model.state_dict().items()}
@@ -116,14 +126,15 @@ def main():
     else:
         best_ep = args.epochs - 1
 
-    final_test_acc = evaluate(model, X[te], y[te])
-    final_val_acc = evaluate(model, X[va], y[va])
+    final_test_acc = evaluate(model, X[te], y[te], device=device)
+    final_val_acc = evaluate(model, X[va], y[va], device=device)
     result = dict(channels=args.channels, seed=args.seed, fold=args.fold,
                   test_subs=test_subs.tolist(), best_epoch=best_ep,
                   val_acc=final_val_acc, test_acc=final_test_acc, n_test=len(te),
                   permute=args.permute)
     print(json.dumps(result))
-    with open("results.jsonl", "a") as f:
+    results_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results.jsonl")
+    with open(results_path, "a") as f:
         f.write(json.dumps(result) + "\n")
 
 

@@ -13,7 +13,7 @@ from scipy.stats import binomtest
 
 def clopper_pearson(k, n, confidence=0.95):
     res = binomtest(k, n, p=0.5)
-    ci = res.confidence_interval(confidence_level=confidence)
+    ci = res.proportion_ci(confidence_level=confidence, method="exact")
     return ci.low, ci.high, res.pvalue
 
 
