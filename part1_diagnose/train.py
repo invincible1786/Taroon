@@ -8,7 +8,6 @@ import json
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.model_selection import train_test_split
 
 from data import build_dataset, SUBJECTS
 from model import EEGNet, count_params
@@ -44,6 +43,8 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--fold", type=int, default=0)
     ap.add_argument("--n_folds", type=int, default=5)
+    ap.add_argument("--select", choices=["val", "last"], default="val")
+    ap.add_argument("--permute", action="store_true")
     args = ap.parse_args()
     set_seed(args.seed)
 
@@ -73,6 +74,11 @@ def main():
     std = X[tr].std(axis=(0, 2), keepdims=True) + 1e-6
     X = ((X - mean) / std).astype(np.float32)
 
+    # Permutation test: shuffle train labels only; val and test keep true labels.
+    y_fit = y.copy()
+    if args.permute:
+        y_fit[tr] = np.random.default_rng(args.seed).permutation(y[tr])
+
     n_ch, n_t = X.shape[1], X.shape[2]
     model = EEGNet(n_ch, n_t)
     print(f"EEGNet: {count_params(model)} params")
@@ -81,24 +87,32 @@ def main():
     loss_fn = nn.CrossEntropyLoss()
     rng = np.random.default_rng(args.seed)
 
-    best_acc, best_state, best_ep = -1.0, None, -1
+    best_val, best_state, best_ep = -1.0, None, -1
     for ep in range(args.epochs):
         model.train()
         order = rng.permutation(tr)
         for i in range(0, len(order), args.bs):
             b = order[i:i + args.bs]
-            xb, yb = torch.from_numpy(X[b]), torch.from_numpy(y[b])
+            xb, yb = torch.from_numpy(X[b]), torch.from_numpy(y_fit[b])
             opt.zero_grad(); loss = loss_fn(model(xb), yb); loss.backward(); opt.step()
         va_acc = evaluate(model, X[va], y[va])
         te_acc = evaluate(model, X[te], y[te])
-        if te_acc > best_acc:   # keep the best checkpoint
-            best_acc, best_ep = te_acc, ep
+        if args.select == "val" and va_acc > best_val:
+            best_val, best_ep = va_acc, ep
             best_state = {k: v.clone() for k, v in model.state_dict().items()}
         print(f"epoch {ep:3d}  loss {loss.item():.3f}  val {va_acc:.3f}  test {te_acc:.3f}")
 
-    model.load_state_dict(best_state)
-    result = dict(channels=args.channels, seed=args.seed, fold=args.fold, best_epoch=best_ep,
-                  test_acc=evaluate(model, X[te], y[te]), n_test=len(te))
+    if args.select == "val" and best_state is not None:
+        model.load_state_dict(best_state)
+    else:
+        best_ep = args.epochs - 1
+
+    final_test_acc = evaluate(model, X[te], y[te])
+    final_val_acc = evaluate(model, X[va], y[va])
+    result = dict(channels=args.channels, seed=args.seed, fold=args.fold,
+                  test_subs=test_subs.tolist(), best_epoch=best_ep,
+                  val_acc=final_val_acc, test_acc=final_test_acc, n_test=len(te),
+                  permute=args.permute)
     print(json.dumps(result))
     with open("results.jsonl", "a") as f:
         f.write(json.dumps(result) + "\n")
