@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from data import load_raw, get_events, EVENT_ID, TMIN, TMAX, SUBJECTS
 
 BANDS = {"mu": (8.0, 13.0), "beta": (13.0, 30.0)}
-BASELINE = (0.0, 0.5)   # rest period before the imagery starts (s)
+BASELINE = (-1.5, -0.5)   # pre-cue rest period before the imagery starts (s)
 PICKS = ["C3", "Cz", "C4"]
 
 
