@@ -1,6 +1,5 @@
 # ANSWERS.md — EEG × Deep Learning Live Exam
 **Candidate:** AI Research Engineer Candidate  
-**Repository:** `https://github.com/invincible1786/Taroon`  
 **Contact:** `shgupta@brainwavescience.com`
 
 ---
