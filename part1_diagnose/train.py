@@ -42,6 +42,8 @@ def main():
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--bs", type=int, default=64)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--fold", type=int, default=0)
+    ap.add_argument("--n_folds", type=int, default=5)
     args = ap.parse_args()
     set_seed(args.seed)
 
@@ -54,16 +56,22 @@ def main():
     print(f"data: {X.shape}, subjects={len(np.unique(groups))}, "
           f"class balance={np.bincount(y)}")
 
-    # Per-channel z-scoring.
+    # Per-channel z-scoring (still global in this commit).
     mean = X.mean(axis=(0, 2), keepdims=True)
     std = X.std(axis=(0, 2), keepdims=True) + 1e-6
     X = ((X - mean) / std).astype(np.float32)
 
-    # Subject-independent evaluation: hold out 20% for test, then 20% of the
-    # remainder for validation.
-    idx = np.arange(len(y))
-    tr, te = train_test_split(idx, test_size=0.2, stratify=y, random_state=args.seed)
-    tr, va = train_test_split(tr, test_size=0.2, stratify=y[tr], random_state=args.seed)
+    # Subject-level split: 5-fold cross-validation by subject.
+    subs = np.unique(groups)
+    folds = np.array_split(np.random.default_rng(1234).permutation(subs), args.n_folds)
+    test_subs = folds[args.fold]
+    rest = np.setdiff1d(subs, test_subs)
+    val_subs = rest[[args.fold % len(rest)]]
+    train_subs = np.setdiff1d(rest, val_subs)
+    tr = np.where(np.isin(groups, train_subs))[0]
+    va = np.where(np.isin(groups, val_subs))[0]
+    te = np.where(np.isin(groups, test_subs))[0]
+    assert not (set(groups[tr]) & set(groups[te])) and not (set(groups[va]) & set(groups[te]))
 
     n_ch, n_t = X.shape[1], X.shape[2]
     model = EEGNet(n_ch, n_t)
@@ -89,7 +97,7 @@ def main():
         print(f"epoch {ep:3d}  loss {loss.item():.3f}  val {va_acc:.3f}  test {te_acc:.3f}")
 
     model.load_state_dict(best_state)
-    result = dict(channels=args.channels, seed=args.seed, best_epoch=best_ep,
+    result = dict(channels=args.channels, seed=args.seed, fold=args.fold, best_epoch=best_ep,
                   test_acc=evaluate(model, X[te], y[te]), n_test=len(te))
     print(json.dumps(result))
     with open("results.jsonl", "a") as f:
