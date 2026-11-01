@@ -23,3 +23,27 @@
 {"channels": "all", "seed": 0, "fold": 2, "test_subs": [3, 7], "best_epoch": 2, "val_acc": 0.5714285714285714, "test_acc": 0.4880952380952381, "n_test": 84, "permute": true}
 {"channels": "all", "seed": 0, "fold": 3, "test_subs": [5, 8], "best_epoch": 29, "val_acc": 0.5952380952380952, "test_acc": 0.5833333333333334, "n_test": 84, "permute": true}
 {"channels": "all", "seed": 0, "fold": 4, "test_subs": [2, 4], "best_epoch": 27, "val_acc": 0.5714285714285714, "test_acc": 0.5714285714285714, "n_test": 84, "permute": true}
+{"model": "EEGNet", "seed": 0, "fold": 0, "test_subs": [9, 10], "best_epoch": 11, "val_acc": 0.5952380952380952, "test_acc": 0.5, "n_test": 84}
+{"model": "VanillaEEGTransformer", "seed": 0, "fold": 0, "test_subs": [9, 10], "best_epoch": 22, "val_acc": 0.7380952380952381, "test_acc": 0.4880952380952381, "n_test": 84}
+{"model": "YourModel", "seed": 0, "fold": 0, "test_subs": [9, 10], "best_epoch": 17, "val_acc": 0.7619047619047619, "test_acc": 0.5119047619047619, "n_test": 84}
+{"model": "YourModel_NoAttn", "seed": 0, "fold": 0, "test_subs": [9, 10], "best_epoch": 23, "val_acc": 0.7857142857142857, "test_acc": 0.6309523809523809, "n_test": 84}
+{"model": "EEGNet", "seed": 0, "fold": 0, "test_subs": [9, 10], "best_epoch": 11, "val_acc": 0.5952380952380952, "test_acc": 0.5, "n_test": 84}
+{"model": "EEGNet", "seed": 1, "fold": 0, "test_subs": [9, 10], "best_epoch": 4, "val_acc": 0.5238095238095238, "test_acc": 0.5476190476190477, "n_test": 84}
+{"model": "EEGNet", "seed": 2, "fold": 0, "test_subs": [9, 10], "best_epoch": 4, "val_acc": 0.5476190476190477, "test_acc": 0.47619047619047616, "n_test": 84}
+{"model": "EEGNet", "seed": 3, "fold": 0, "test_subs": [9, 10], "best_epoch": 0, "val_acc": 0.6666666666666666, "test_acc": 0.5119047619047619, "n_test": 84}
+{"model": "EEGNet", "seed": 4, "fold": 0, "test_subs": [9, 10], "best_epoch": 0, "val_acc": 0.6190476190476191, "test_acc": 0.5595238095238095, "n_test": 84}
+{"model": "VanillaEEGTransformer", "seed": 0, "fold": 0, "test_subs": [9, 10], "best_epoch": 22, "val_acc": 0.7380952380952381, "test_acc": 0.4880952380952381, "n_test": 84}
+{"model": "VanillaEEGTransformer", "seed": 1, "fold": 0, "test_subs": [9, 10], "best_epoch": 24, "val_acc": 0.6428571428571429, "test_acc": 0.42857142857142855, "n_test": 84}
+{"model": "VanillaEEGTransformer", "seed": 2, "fold": 0, "test_subs": [9, 10], "best_epoch": 22, "val_acc": 0.7142857142857143, "test_acc": 0.4880952380952381, "n_test": 84}
+{"model": "VanillaEEGTransformer", "seed": 3, "fold": 0, "test_subs": [9, 10], "best_epoch": 22, "val_acc": 0.5476190476190477, "test_acc": 0.4523809523809524, "n_test": 84}
+{"model": "VanillaEEGTransformer", "seed": 4, "fold": 0, "test_subs": [9, 10], "best_epoch": 21, "val_acc": 0.6904761904761905, "test_acc": 0.5476190476190477, "n_test": 84}
+{"model": "YourModel", "seed": 0, "fold": 0, "test_subs": [9, 10], "best_epoch": 17, "val_acc": 0.7619047619047619, "test_acc": 0.5119047619047619, "n_test": 84}
+{"model": "YourModel", "seed": 1, "fold": 0, "test_subs": [9, 10], "best_epoch": 23, "val_acc": 0.8095238095238095, "test_acc": 0.4523809523809524, "n_test": 84}
+{"model": "YourModel", "seed": 2, "fold": 0, "test_subs": [9, 10], "best_epoch": 20, "val_acc": 0.6666666666666666, "test_acc": 0.5714285714285714, "n_test": 84}
+{"model": "YourModel", "seed": 3, "fold": 0, "test_subs": [9, 10], "best_epoch": 15, "val_acc": 0.6904761904761905, "test_acc": 0.4523809523809524, "n_test": 84}
+{"model": "YourModel", "seed": 4, "fold": 0, "test_subs": [9, 10], "best_epoch": 17, "val_acc": 0.8095238095238095, "test_acc": 0.4880952380952381, "n_test": 84}
+{"model": "YourModel_NoAttn", "seed": 0, "fold": 0, "test_subs": [9, 10], "best_epoch": 23, "val_acc": 0.7857142857142857, "test_acc": 0.6309523809523809, "n_test": 84}
+{"model": "YourModel_NoAttn", "seed": 1, "fold": 0, "test_subs": [9, 10], "best_epoch": 21, "val_acc": 0.8095238095238095, "test_acc": 0.5833333333333334, "n_test": 84}
+{"model": "YourModel_NoAttn", "seed": 2, "fold": 0, "test_subs": [9, 10], "best_epoch": 22, "val_acc": 0.7142857142857143, "test_acc": 0.6190476190476191, "n_test": 84}
+{"model": "YourModel_NoAttn", "seed": 3, "fold": 0, "test_subs": [9, 10], "best_epoch": 24, "val_acc": 0.7380952380952381, "test_acc": 0.5119047619047619, "n_test": 84}
+{"model": "YourModel_NoAttn", "seed": 4, "fold": 0, "test_subs": [9, 10], "best_epoch": 24, "val_acc": 0.6666666666666666, "test_acc": 0.5, "n_test": 84}
