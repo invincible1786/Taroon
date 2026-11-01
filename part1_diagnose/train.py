@@ -12,11 +12,16 @@ import torch.nn as nn
 from data import build_dataset, SUBJECTS
 from model import EEGNet, count_params
 
-# Electrode groups for the channel-subset run (Task 3).
-# TODO: fill in "frontal" with the electrode names you choose.
+FRONTAL = ["Fp1", "Fpz", "Fp2", "AF7", "AF3", "AFz", "AF4", "AF8"]  # closest to the eyes
+CENTRAL = ["FC3", "FC1", "FCz", "FC2", "FC4", "C3", "C1", "Cz", "C2", "C4", "CP3", "CP1", "CPz", "CP2", "CP4"]
+OCCIPITAL = ["O1", "Oz", "O2", "PO3", "POz", "PO4", "PO7", "PO8"]  # same size as FRONTAL
+
 CHANNEL_GROUPS = {
     "all": None,
-    "frontal": [],
+    "frontal": FRONTAL,
+    "central": CENTRAL,
+    "occipital": OCCIPITAL,
+    "no_frontal": "NOT_FRONTAL",
 }
 
 
@@ -50,9 +55,13 @@ def main():
 
     X, y, groups, ch_names = build_dataset(args.subjects)
     picks = CHANNEL_GROUPS[args.channels]
+    if picks == "NOT_FRONTAL":
+        picks = [c for c in ch_names if c not in FRONTAL]
     if picks is not None:
         if not picks:
             raise ValueError(f"Fill in CHANNEL_GROUPS['{args.channels}'] first.")
+        missing = [c for c in picks if c not in ch_names]
+        assert not missing, f"Missing channels: {missing}"
         X = X[:, [ch_names.index(c) for c in picks]]
     print(f"data: {X.shape}, subjects={len(np.unique(groups))}, "
           f"class balance={np.bincount(y)}")
