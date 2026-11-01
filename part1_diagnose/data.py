@@ -15,7 +15,7 @@ MONTAGE = ("colin27_1005" if "colin27_1005" in mne.channels.get_builtin_montages
            else "standard_1005")
 
 # Runs containing imagined both-fists vs both-feet trials.
-RUNS = [5, 9, 13]
+RUNS = [6, 10, 14]
 SUBJECTS = list(range(1, 11))
 
 L_FREQ, H_FREQ = 1.0, 40.0   # broadband filter applied to the continuous recording
